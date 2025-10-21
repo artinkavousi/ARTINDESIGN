@@ -1,0 +1,58 @@
+---
+slug: morph-particles
+title: Morphing Particle System
+category: compute
+difficulty: advanced
+preview: /og/labs/morph-particles.png
+sceneComponent: '@/scenes/labs/morph-particles/Scene'
+publishedAt: '2025-01-22'
+description: GPU-driven particle system that morphs between geometric shapes using compute shaders.
+tags:
+  - webgpu
+  - compute
+  - particles
+  - morphing
+  - tsl
+---
+
+This lab demonstrates a GPU-driven particle system that smoothly morphs between different geometric shapes. Each particle is attracted to target positions while exhibiting organic wandering behavior influenced by pointer interaction.
+
+## Implementation Highlights
+
+- Compute shader manages position, velocity, and target attraction for thousands of particles.
+- Particles morph between different geometries (sphere, cube, torus, etc.) with smooth transitions.
+- Pointer interaction repels particles, creating dynamic fluid-like responses.
+- Color palette interpolation based on particle properties.
+- Fully GPU-accelerated with zero CPU overhead during animation.
+
+## Controls
+
+- **Move Pointer** — Repels nearby particles creating organic motion patterns.
+- **Attraction Strength** — Controls how strongly particles are pulled toward their targets.
+- **Noise Amplitude** — Adjusts the amount of random wandering behavior.
+- **Damping** — Controls how quickly particle motion decays.
+- **Target Shape** — Switch between different geometric forms (sphere, cube, torus, knot).
+
+## Usage
+
+```tsx
+import { createMorphParticleSystem } from '@/lib/tsl/compute'
+
+const system = createMorphParticleSystem(renderer, camera, plane, {
+  count: 12000,
+  attractionStrength: 4.5,
+  noiseAmplitude: 0.45,
+  damping: 0.89,
+  baseSize: 0.035,
+})
+
+// Initialize with starting positions and targets
+await system.init(spherePositions, sphereTargets)
+
+// Morph to new shape
+await system.setTargets(cubeTargets)
+
+// Update each frame
+await system.update()
+```
+

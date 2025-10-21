@@ -1,0 +1,34 @@
+---
+slug: flow-field
+title: Flow Field Attractor
+category: compute
+difficulty: advanced
+preview: /og/labs/flow-field.png
+sceneComponent: '@/scenes/labs/flow-field/Scene'
+publishedAt: '2025-01-21'
+description: Curl-noise particle system reacting to pointer input via WebGPU compute nodes.
+tags:
+  - webgpu
+  - compute
+  - particles
+  - curl-noise
+---
+
+This lab ports the flow-field pattern from Portfolio Main into a reusable WebGPU compute module. Particles are distributed on a mesh and evolve in time following a curl-noise velocity field with pointer interaction.
+
+## Implementation Notes
+
+- `createFlowFieldSystem` builds storage buffers for base positions, positions, velocities, and strength.
+- Two compute passes run per frame: curl-noise driven turbulence and pointer attraction.
+- Instanced sprites are rendered in the R3F scene with size and color based on particle strength.
+- A `WebGPUPointer` helper injects pointer world coordinates and velocity for attraction.
+
+```tsx
+const system = createFlowFieldSystem(renderer, camera, new Plane(new Vector3(0, 0, 1), 0))
+await system.init(generatePointsOnSurface(count))
+scene.add(system.createMesh())
+```
+
+Move your pointer across the canvas to steer the flow. The `hoverDuration`, `pointerRadius`, `contactScale`, and turbulence parameters can be exposed via the admin panel for real-time tuning.
+
+

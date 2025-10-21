@@ -1,0 +1,307 @@
+---
+title: "TSL Shader Playground"
+summary: "Interactive shader editor for learning and experimenting with Three.js Shading Language"
+publishedAt: "2025-01-22"
+slug: "tsl-shader-playground"
+templateId: "shader-hero"
+styleId: "emerald-dark"
+sceneProps:
+  shaderType: "wave"
+  intensity: 1.2
+  speed: 1.5
+tags:
+  - tsl
+  - shaders
+  - learning
+  - tutorial
+featured: false
+draft: false
+---
+
+import { TemplateLoader } from '@/components/templates/TemplateLoader'
+
+<TemplateLoader
+  templateId="shader-hero"
+  props={{
+    title: "Learn TSL",
+    subtitle: "Interactive shader programming in the browser",
+    shaderType: "wave",
+    intensity: 1.2,
+    speed: 1.5,
+    colorPrimary: "#10b981",
+    colorSecondary: "#6366f1"
+  }}
+/>
+
+## What is TSL?
+
+Three.js Shading Language (TSL) is a revolutionary approach to writing shaders. Instead of writing raw GLSL or WGSL, you build shader graphs programmatically using JavaScript/TypeScript.
+
+### Why TSL?
+
+- **Type Safety**: Full TypeScript support with autocomplete
+- **Composability**: Reusable shader functions and nodes
+- **Cross-Platform**: Works with both WebGPU and WebGL
+- **Debugging**: Better error messages and stack traces
+
+## Interactive Examples
+
+### Example 1: Basic Color Gradient
+
+<TemplateLoader
+  templateId="code-playground"
+  props={{
+    title: "Simple Gradient",
+    description: "A basic color gradient using TSL nodes",
+    initialCode: `import { Fn, vec3, uv } from 'three/tsl'
+
+const shader = Fn(() => {
+  const uvCoords = uv()
+  const color = vec3(
+    uvCoords.x,
+    uvCoords.y,
+    0.5
+  )
+  return vec4(color, 1.0)
+})`,
+    language: "typescript",
+    showPreview: true
+  }}
+/>
+
+### Example 2: Animated Noise
+
+<TemplateLoader
+  templateId="code-playground"
+  props={{
+    title: "Simplex Noise Animation",
+    description: "Using noise functions for organic movement",
+    initialCode: `import { Fn, vec3, uv, time } from 'three/tsl'
+import { simplexNoise3d } from '@/lib/tsl'
+
+const shader = Fn(() => {
+  const uvCoords = uv()
+  const pos3d = vec3(
+    uvCoords.x,
+    uvCoords.y,
+    time.mul(0.5)
+  )
+  
+  const noise = simplexNoise3d(pos3d.mul(3.0))
+  const color = vec3(noise.mul(0.5).add(0.5))
+  
+  return vec4(color, 1.0)
+})`,
+    language: "typescript",
+    showPreview: true
+  }}
+/>
+
+## TSL Node Types
+
+### Math Nodes
+
+```typescript
+import { add, sub, mul, div, pow, sqrt } from 'three/tsl'
+
+const result = add(mul(2, 3), div(10, 2)) // (2 * 3) + (10 / 2) = 11
+```
+
+### Vector Operations
+
+```typescript
+import { vec3, dot, cross, normalize, length } from 'three/tsl'
+
+const v1 = vec3(1, 0, 0)
+const v2 = vec3(0, 1, 0)
+const perpendicular = cross(v1, v2) // vec3(0, 0, 1)
+```
+
+### Texture Sampling
+
+```typescript
+import { texture, uv } from 'three/tsl'
+
+const sampler = texture(myTexture, uv())
+const color = sampler.rgb
+const alpha = sampler.a
+```
+
+### Uniforms
+
+```typescript
+import { uniform } from 'three/tsl'
+
+const time = uniform(0) // Updated each frame
+const resolution = uniform(vec2(1920, 1080))
+const mousePos = uniform(vec2(0, 0))
+```
+
+## Building Complex Shaders
+
+### Color Palette Generator
+
+<TemplateLoader
+  templateId="code-playground"
+  props={{
+    title: "Cosine Palette",
+    description: "Generate beautiful color palettes using cosine functions",
+    initialCode: `import { Fn, vec3, uv, cos, PI } from 'three/tsl'
+
+const cosinePalette = Fn(([t, a, b, c, d]) => {
+  return a.add(b.mul(cos(PI.mul(2.0).mul(c.mul(t).add(d)))))
+})
+
+const shader = Fn(() => {
+  const uvCoords = uv()
+  const t = uvCoords.x
+  
+  const color = cosinePalette(
+    t,
+    vec3(0.5, 0.5, 0.5),
+    vec3(0.5, 0.5, 0.5),
+    vec3(1.0, 1.0, 1.0),
+    vec3(0.0, 0.33, 0.67)
+  )
+  
+  return vec4(color, 1.0)
+})`,
+    language: "typescript",
+    showPreview: true
+  }}
+/>
+
+### Signed Distance Fields
+
+```typescript
+import { Fn, length, vec2, vec3, min, max, abs } from 'three/tsl'
+
+// SDF for a circle
+const sdCircle = Fn(([p, r]) => {
+  return length(p).sub(r)
+})
+
+// SDF for a box
+const sdBox = Fn(([p, b]) => {
+  const d = abs(p).sub(b)
+  return length(max(d, 0.0)).add(min(max(d.x, max(d.y, d.z)), 0.0))
+})
+
+// Combine shapes
+const combined = min(
+  sdCircle(pos.xy, 0.5),
+  sdBox(pos, vec3(0.3, 0.3, 0.3))
+)
+```
+
+## Advanced Patterns
+
+### Ray Marching
+
+```typescript
+import { Fn, vec3, normalize, float, mix } from 'three/tsl'
+
+const rayMarch = Fn(([ro, rd, maxDist]) => {
+  let depth = float(0)
+  
+  Loop({ start: 0, end: 64 }, () => {
+    const pos = ro.add(rd.mul(depth))
+    const dist = sceneSDF(pos)
+    
+    If(dist.lessThan(0.001), () => {
+      Break()
+    })
+    
+    depth.addAssign(dist)
+    
+    If(depth.greaterThan(maxDist), () => {
+      Break()
+    })
+  })
+  
+  return depth
+})
+```
+
+### Fractal Patterns
+
+```typescript
+import { Fn, sin, cos, float } from 'three/tsl'
+
+const fractal = Fn(([p, iterations]) => {
+  let z = p
+  let value = float(0)
+  
+  Loop({ start: 0, end: iterations }, ([i]) => {
+    z = vec2(
+      z.x.mul(z.x).sub(z.y.mul(z.y)).add(p.x),
+      z.x.mul(z.y).mul(2.0).add(p.y)
+    )
+    
+    value.addAssign(1.0 / float(i.add(1)))
+  })
+  
+  return value
+})
+```
+
+## Performance Tips
+
+### 1. Minimize Texture Lookups
+
+```typescript
+// ❌ Bad: Multiple lookups
+const r = texture(tex, uv).r
+const g = texture(tex, uv).g
+const b = texture(tex, uv).b
+
+// ✅ Good: Single lookup
+const sample = texture(tex, uv)
+const r = sample.r
+const g = sample.g
+const b = sample.b
+```
+
+### 2. Use Built-in Functions
+
+```typescript
+// ❌ Bad: Manual normalization
+const len = length(v)
+const normalized = vec3(v.x / len, v.y / len, v.z / len)
+
+// ✅ Good: Built-in normalize
+const normalized = normalize(v)
+```
+
+### 3. Avoid Branching
+
+```typescript
+// ❌ Bad: Conditional branching
+If(condition, () => {
+  result.assign(valueA)
+}).Else(() => {
+  result.assign(valueB)
+})
+
+// ✅ Good: Use mix/step
+const result = mix(valueB, valueA, step(0.5, condition))
+```
+
+## Resources
+
+- [TSL Documentation](https://threejs.org/docs/#api/en/nodes)
+- [Shader Examples](/labs) - Interactive demos
+- [Community Discord](https://discord.gg/threejs) - Get help
+
+## Try It Yourself
+
+The code examples above are fully editable. Experiment with:
+
+- Changing parameters
+- Combining noise functions
+- Creating new color palettes
+- Building custom SDFs
+
+**The best way to learn is by doing. Start coding!**
+
+

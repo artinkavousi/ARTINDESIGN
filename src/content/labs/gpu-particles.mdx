@@ -1,0 +1,44 @@
+---
+slug: gpu-particles
+title: Spark Particle Flow
+category: particles
+difficulty: advanced
+preview: /og/labs/gpu-particles.png
+sceneComponent: '@/scenes/labs/gpu-particles/Scene'
+publishedAt: '2025-01-20'
+description: WebGPU spark particles driven by compute nodes and pointer input.
+tags:
+  - webgpu
+  - compute
+  - particles
+  - tsl
+---
+
+The GPU particle laboratory showcases a pointer-reactive spark system built entirely with WebGPU storage buffers and TSL compute nodes. Move your cursor to emit sparks that accumulate momentum and decay over time.
+
+## Implementation Highlights
+
+- Storage buffers store position, velocity, and lifetime attributes for each spark.
+- Compute nodes update particles asynchronously every frame via `WebGPURenderer.computeAsync`.
+- Pointer velocity and position feed uniforms that determine spawn direction.
+- The instanced sprite material samples buffer values via node attributes for rendering.
+
+## Controls
+
+- **Pointer Speed** — Influences spark launch direction and energy.
+- **Gravity** — Pulls sparks downward each frame.
+- **Life Decay** — Adjusts how quickly sparks fade out.
+
+```tsx
+import { createSparkParticleSystem } from '@/lib/tsl/compute'
+
+const particles = createSparkParticleSystem(renderer, {
+  count: 20000,
+  sparkSpeed: 2,
+  sparkSpread: 1.5,
+})
+
+await particles.init()
+scene.add(particles.createMesh({ additive: true }))
+```
+

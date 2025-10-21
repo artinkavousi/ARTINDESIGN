@@ -1,0 +1,46 @@
+---
+slug: fluid-simulation
+title: Fluid Surface Simulation
+category: fluid
+difficulty: advanced
+preview: /og/labs/fluid-simulation.png
+sceneComponent: '@/scenes/labs/fluid-simulation/Scene'
+publishedAt: '2025-01-22'
+description: WebGPU height-field fluid simulation rendered with a transmissive surface material.
+tags:
+  - webgpu
+  - compute
+  - fluid
+  - tsl
+---
+
+This experiment ports the fluid-surface technique from the Fragments and fluidglass references into a reusable TSL module. The simulation updates a grid of displacement values on the GPU, generates smooth normals, and renders the surface using `MeshPhysicalNodeMaterial` with refraction.
+
+## Highlights
+
+- Height-field solver implemented with chained compute passes in TSL.
+- Pointer interactions propagate ripples using exponential falloff.
+- Instanced plane mesh uses node-based position and normal overrides to deform the water surface.
+- Material blends deep-water colors with foam based on velocity magnitude.
+
+```tsx
+import { createFluidSurfaceSimulation } from '@/lib/tsl/compute'
+
+const fluid = createFluidSurfaceSimulation(renderer, {
+  resolution: 192,
+  worldSize: 8,
+  heightScale: 0.5,
+})
+
+await fluid.init()
+const mesh = fluid.createMesh()
+scene.add(mesh)
+
+useFrame((_, delta) => {
+  fluid.update(delta)
+})
+```
+
+Move the pointer across the canvas or tap to add drops. Parameters such as damping, wave speed, and ambient jitter can be exposed via the admin dashboard for real-time tuning.
+
+
