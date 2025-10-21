@@ -1,0 +1,59 @@
+# Cloudflare Pages Configuration
+name = "webgpu-creative-lab"
+compatibility_date = "2025-01-01"
+
+[build]
+command = "npm run build"
+cwd = ""
+watch_dir = "src"
+
+[build.upload]
+format = "directory"
+dir = "out"
+
+[[env.production]]
+name = "webgpu-creative-lab-production"
+routes = [
+  { pattern = "webgpu-lab.com", zone_name = "webgpu-lab.com" }
+]
+
+[[env.preview]]
+name = "webgpu-creative-lab-preview"
+
+# Environment Variables (set in Cloudflare Dashboard)
+[vars]
+ENVIRONMENT = "production"
+
+# Analytics (optional)
+[analytics]
+engine = "cloudflare"
+
+# Caching (optional)
+[cache]
+max_age = 3600
+
+# Headers
+[[headers]]
+for = "/*"
+[headers.values]
+  X-Frame-Options = "DENY"
+  X-Content-Type-Options = "nosniff"
+  Referrer-Policy = "strict-origin-when-cross-origin"
+  Permissions-Policy = "accelerometer=(), camera=(), microphone=()"
+
+[[headers]]
+for = "/assets/*"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.js"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+for = "/*.css"
+[headers.values]
+  Cache-Control = "public, max-age=31536000, immutable"
+
+

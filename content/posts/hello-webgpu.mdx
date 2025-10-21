@@ -1,0 +1,119 @@
+---
+title: "Hello WebGPU: Building with TSL"
+summary: "Exploring Three.js Shading Language and WebGPU for creative web experiences"
+publishedAt: "2025-01-20"
+slug: "hello-webgpu"
+templateId: "shader-hero"
+styleId: "purple-dark"
+sceneProps:
+  shaderType: "noise"
+  intensity: 1.5
+  speed: 1.2
+  colorPrimary: "#6366f1"
+  colorSecondary: "#8b5cf6"
+tags:
+  - webgpu
+  - tsl
+  - three.js
+  - shaders
+featured: true
+draft: false
+---
+
+import { TemplateLoader } from '@/components/templates/TemplateLoader'
+
+<TemplateLoader
+  templateId="shader-hero"
+  props={{
+    title: "Hello WebGPU",
+    subtitle: "Building the future of 3D graphics on the web",
+    shaderType: "noise",
+    intensity: 1.5,
+    speed: 1.2,
+    colorPrimary: "#6366f1",
+    colorSecondary: "#8b5cf6"
+  }}
+/>
+
+## Introduction
+
+WebGPU represents the next generation of graphics APIs for the web, offering unprecedented performance and control over GPU computations. Combined with Three.js Shading Language (TSL), we can build incredible visual experiences that run directly in the browser.
+
+### What is TSL?
+
+TSL (Three.js Shading Language) is a node-based shader system that lets you:
+
+- Build shaders programmatically
+- Compose reusable shader functions
+- Work with both WebGPU and WebGL backends
+- Leverage TypeScript type safety
+
+```typescript
+import { Fn, vec3, sin, time } from 'three/tsl'
+
+const colorNode = Fn(() => {
+  const pattern = sin(time.mul(2.0))
+  return vec3(pattern, 0.5, 1.0)
+})
+```
+
+## Why WebGPU?
+
+WebGPU brings modern GPU capabilities to the web:
+
+1. **Compute Shaders** - Run parallel computations on the GPU
+2. **Storage Buffers** - Efficient data sharing between CPU/GPU
+3. **Better Performance** - Lower overhead, higher throughput
+4. **Future-Proof** - Built for modern hardware
+
+<TemplateLoader
+  templateId="floating-3d"
+  props={{
+    title: "Performance Matters",
+    content: "<p>With WebGPU, we can render millions of particles, run complex simulations, and create stunning visual effects - all at 60fps.</p>",
+    modelType: "torus",
+    floatSpeed: 1.5,
+    rotationSpeed: 0.8,
+    scale: 1.2,
+    color: "#8b5cf6"
+  }}
+/>
+
+## Getting Started
+
+The core pattern is simple:
+
+```tsx
+import { WebGPURenderer } from 'three/webgpu'
+import { Canvas } from '@react-three/fiber'
+
+function App() {
+  return (
+    <Canvas
+      gl={async (canvas) => {
+        const renderer = new WebGPURenderer({ canvas })
+        await renderer.init()
+        return renderer
+      }}
+    >
+      <YourScene />
+    </Canvas>
+  )
+}
+```
+
+## Next Steps
+
+Explore the labs to see TSL and WebGPU in action:
+
+- [GPU Particles](/labs/gpu-particles) - Million particle systems
+- [Fluid Simulation](/labs/fluid-simulation) - Real-time fluid dynamics
+- [Shader Playground](/labs/shader-playground) - Interactive TSL editor
+
+## Conclusion
+
+WebGPU and TSL open up incredible possibilities for creative coding on the web. This site itself is built entirely with these technologies - every animation, transition, and effect runs on the GPU.
+
+Dive into the code, experiment, and push the boundaries of what's possible in the browser.
+
+

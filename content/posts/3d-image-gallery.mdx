@@ -1,0 +1,381 @@
+---
+title: "Building a 3D Image Gallery"
+summary: "Creating immersive image experiences with WebGPU and spatial positioning"
+publishedAt: "2025-01-23"
+slug: "3d-image-gallery"
+templateId: "gallery-3d"
+styleId: "pink-dark"
+sceneProps:
+  layout: "carousel"
+  depth: 3
+tags:
+  - webgpu
+  - gallery
+  - images
+  - 3d
+featured: false
+draft: false
+---
+
+import { TemplateLoader } from '@/components/templates/TemplateLoader'
+
+<TemplateLoader
+  templateId="shader-hero"
+  props={{
+    title: "3D Gallery",
+    subtitle: "Images that live in three-dimensional space",
+    shaderType: "particles",
+    intensity: 1.0,
+    speed: 0.8,
+    colorPrimary: "#ec4899",
+    colorSecondary: "#8b5cf6"
+  }}
+/>
+
+## The Concept
+
+Traditional web galleries are flat. What if images could exist in 3D space, with depth, parallax, and spatial relationships?
+
+### Key Features
+
+- **Spatial Positioning**: Images arranged in 3D space
+- **Parallax Scrolling**: Depth-based movement
+- **Smooth Transitions**: GPU-accelerated animations
+- **Flexible Layouts**: Carousel, grid, or spiral arrangements
+
+## Interactive Gallery
+
+<TemplateLoader
+  templateId="gallery-3d"
+  props={{
+    title: "Featured Projects",
+    images: [
+      {
+        src: "/gallery/project-1.jpg",
+        alt: "WebGPU Particle System",
+        caption: "Million particle simulation running at 60fps"
+      },
+      {
+        src: "/gallery/project-2.jpg",
+        alt: "Fluid Simulation",
+        caption: "Real-time Navier-Stokes solver on GPU"
+      },
+      {
+        src: "/gallery/project-3.jpg",
+        alt: "Ray Marching",
+        caption: "Volumetric rendering with signed distance fields"
+      },
+      {
+        src: "/gallery/project-4.jpg",
+        alt: "Procedural Terrain",
+        caption: "Infinite terrain generation with LOD"
+      }
+    ],
+    layout: "carousel",
+    autoPlay: false,
+    depth: 3
+  }}
+/>
+
+## Implementation Details
+
+### 3D Positioning System
+
+Each image is positioned in 3D space with depth:
+
+```typescript
+import { useFrame } from '@react-three/fiber'
+import { useTexture } from '@react-three/drei'
+
+function Image3D({ src, position, depth }) {
+  const texture = useTexture(src)
+  const meshRef = useRef()
+
+  useFrame((state) => {
+    // Parallax based on scroll
+    meshRef.current.position.z = depth * scrollProgress
+    
+    // Rotate slightly for depth perception
+    meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime) * 0.1
+  })
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <planeGeometry args={[16, 9]} />
+      <meshBasicMaterial map={texture} transparent />
+    </mesh>
+  )
+}
+```
+
+### Layout Algorithms
+
+#### Carousel Layout
+
+```typescript
+const carouselLayout = (images, currentIndex) => {
+  const radius = 20
+  const angleStep = (Math.PI * 2) / images.length
+  
+  return images.map((img, i) => {
+    const offset = i - currentIndex
+    const angle = offset * angleStep
+    
+    return {
+      position: [
+        Math.sin(angle) * radius,
+        0,
+        Math.cos(angle) * radius
+      ],
+      rotation: [0, -angle, 0],
+      scale: i === currentIndex ? 1.2 : 1.0
+    }
+  })
+}
+```
+
+#### Grid Layout
+
+```typescript
+const gridLayout = (images, columns = 3) => {
+  const spacing = 12
+  const rows = Math.ceil(images.length / columns)
+  
+  return images.map((img, i) => {
+    const col = i % columns
+    const row = Math.floor(i / columns)
+    
+    return {
+      position: [
+        (col - columns / 2) * spacing,
+        (rows / 2 - row) * spacing,
+        0
+      ],
+      rotation: [0, 0, 0],
+      scale: 1.0
+    }
+  })
+}
+```
+
+#### Spiral Layout
+
+```typescript
+const spiralLayout = (images) => {
+  const radius = 5
+  const height = 30
+  const turns = 3
+  
+  return images.map((img, i) => {
+    const t = i / images.length
+    const angle = t * Math.PI * 2 * turns
+    const r = radius + t * radius
+    const y = (1 - t) * height
+    
+    return {
+      position: [
+        Math.cos(angle) * r,
+        y,
+        Math.sin(angle) * r
+      ],
+      rotation: [0, -angle, 0],
+      scale: 1.0 - t * 0.3
+    }
+  })
+}
+```
+
+### Smooth Transitions
+
+Using GSAP for smooth camera movements:
+
+```typescript
+import gsap from 'gsap'
+
+const transitionToImage = (camera, targetPosition, targetLookAt) => {
+  gsap.to(camera.position, {
+    x: targetPosition[0],
+    y: targetPosition[1],
+    z: targetPosition[2],
+    duration: 1.5,
+    ease: 'power2.inOut'
+  })
+  
+  gsap.to(camera.lookAt, {
+    x: targetLookAt[0],
+    y: targetLookAt[1],
+    z: targetLookAt[2],
+    duration: 1.5,
+    ease: 'power2.inOut'
+  })
+}
+```
+
+## Advanced Features
+
+### Image Loading Strategy
+
+```typescript
+import { useProgress } from '@react-three/drei'
+
+function ImageGallery({ images }) {
+  const { active, progress } = useProgress()
+  const [loadedImages, setLoadedImages] = useState([])
+  
+  useEffect(() => {
+    // Progressive loading
+    images.forEach((img, index) => {
+      const image = new Image()
+      image.onload = () => {
+        setLoadedImages(prev => [...prev, index])
+      }
+      image.src = img.src
+    })
+  }, [images])
+  
+  if (active) {
+    return <LoadingScreen progress={progress} />
+  }
+  
+  return loadedImages.map(index => (
+    <Image3D key={index} {...images[index]} />
+  ))
+}
+```
+
+### Depth of Field
+
+Add cinematic focus effects:
+
+```typescript
+import { DepthOfField } from '@react-three/postprocessing'
+
+<EffectComposer>
+  <DepthOfField
+    focusDistance={0}
+    focalLength={0.02}
+    bokehScale={2}
+    height={480}
+  />
+</EffectComposer>
+```
+
+### Interaction Handlers
+
+```typescript
+function InteractiveImage({ onClick }) {
+  const [hovered, setHovered] = useState(false)
+  
+  return (
+    <mesh
+      onClick={onClick}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+      scale={hovered ? 1.1 : 1.0}
+    >
+      <planeGeometry />
+      <meshStandardMaterial
+        map={texture}
+        emissive={hovered ? 0x222222 : 0x000000}
+      />
+    </mesh>
+  )
+}
+```
+
+## Performance Optimization
+
+### Texture Compression
+
+```typescript
+import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader'
+
+const ktx2Loader = new KTX2Loader()
+ktx2Loader.setTranscoderPath('/basis/')
+ktx2Loader.detectSupport(renderer)
+
+// 50-75% smaller file sizes
+const texture = await ktx2Loader.loadAsync('image.ktx2')
+```
+
+### Frustum Culling
+
+```typescript
+import { Frustum, Matrix4 } from 'three'
+
+const frustum = new Frustum()
+const cameraViewProjectionMatrix = new Matrix4()
+
+function isVisible(mesh, camera) {
+  cameraViewProjectionMatrix.multiplyMatrices(
+    camera.projectionMatrix,
+    camera.matrixWorldInverse
+  )
+  frustum.setFromProjectionMatrix(cameraViewProjectionMatrix)
+  
+  return frustum.intersectsObject(mesh)
+}
+
+// Only render visible images
+images.filter(img => isVisible(img.mesh, camera)).forEach(renderImage)
+```
+
+### LOD (Level of Detail)
+
+```typescript
+import { LOD } from 'three'
+
+const lod = new LOD()
+
+// High-res for close viewing
+lod.addLevel(highResMesh, 0)
+
+// Medium-res for mid-distance
+lod.addLevel(mediumResMesh, 10)
+
+// Low-res for far distance
+lod.addLevel(lowResMesh, 20)
+
+scene.add(lod)
+```
+
+## Use Cases
+
+### Portfolio Websites
+
+Showcase projects with spatial depth and context.
+
+### E-commerce
+
+Display products from multiple angles with smooth transitions.
+
+### Museum Exhibitions
+
+Create virtual gallery experiences.
+
+### Photo Albums
+
+Transform memories into immersive 3D experiences.
+
+## Try the Gallery
+
+Use the gallery above to experience 3D image browsing:
+
+- **Arrow Keys**: Navigate between images
+- **Mouse Wheel**: Zoom in/out
+- **Click Thumbnails**: Jump to specific image
+- **Drag**: Rotate view (coming soon)
+
+## Next Steps
+
+- [WebGPU Textures](/blog/webgpu-textures) - Advanced texture techniques
+- [Camera Controls](/blog/camera-controls) - Building custom camera systems
+- [Performance Guide](/blog/webgpu-performance) - Optimization strategies
+
+## Conclusion
+
+3D galleries open up new possibilities for displaying images on the web. With WebGPU's performance and Three.js's ease of use, creating immersive visual experiences is more accessible than ever.
+
+**Start building your own 3D gallery today!**
+
+
